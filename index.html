@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predict Pneumonia</title>
+    <link rel="stylesheet" type="text/css" href="xray.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+</head>
+<body>
+  <div id="login-box">
+  <div class="left">
+    <h1>Pneuva</h1>
+
+    <h3>Paste an URL of a chest X-ray to determine the likelihood of pneumonia</h3>
+    <form id="photo">
+      <input type="text" name="img-url" id="testing" placeholder="URL"><br>
+    </form>
+
+    <button type="button" class="button">Enter</button>
+    <br>
+
+    <input id="refresh-button" class="refresh-page" type="button" value="Refresh" onClick="window.location.reload()">
+
+  </div>
+
+  <!-- Display the results from Azure -->
+  <div class="right">
+    
+    
+
+  </div>
+<!--   <div class="or">---</div> -->
+
+  <script type="text/javascript">
+    $("button").click(function() {
+        var params = {
+            // Request parameters
+            "iterationId": "{string}",
+            "application": "{string}",
+        };
+
+        var urlImg = $('#testing').val();
+      
+        $.ajax({
+            url: "https://southcentralus.api.cognitive.microsoft.com/customvision/v2.0/Prediction/somekeytoreplace/url?",
+            beforeSend: function(xhrObj){
+                // Request headers
+                // xhrObj.setRequestHeader("Content-Type","multipart/form-data");
+                xhrObj.setRequestHeader("Prediction-Key","");
+                xhrObj.setRequestHeader("Content-Type","application/json");
+                xhrObj.setRequestHeader("Prediction-key","somekeytoreplace");
+            },
+            // Content-Type: "application/json",
+            type: "POST",
+            // Request body
+            // data: "https://media.wired.com/photos/598e35fb99d76447c4eb1f28/master/pass/phonepicutres-TA.jpg",
+            // data: "{'Url': 'https://i.pinimg.com/originals/1d/55/76/1d5576daec72b8c2c297de85cc8e6182.jpg'}"
+            data: "{'Url': '" + urlImg + "'}"
+
+        })
+        .done(function(data) {
+            var arr_tag0 = data.predictions[0];
+            // var arr_tag1 = data.predictions[1];
+
+            var dec_ill = 0;
+
+            if (arr_tag0.tagName == "healthy") {
+                var dec_ill = (1 - data.predictions[0].probability) * 100;
+            } else {
+                var dec_ill = data.predictions[0].probability * 100;
+            }
+            
+            var is_ill = (dec_ill).toFixed(2) + "%";
+            
+            // var not_ill = (data.predictions[1].probability*100).toFixed(1) + "%";
+
+            console.log("success: ", data.predictions);
+            $('.right').append('<h3>Probability of pneumonia: </h3>');
+
+            if (dec_ill >= 90) {
+              $('.right').append('<h2 style="color:red;">'+ is_ill + "</h2>");
+            } else if (90 > dec_ill && dec_ill > 40) {
+              $('.right').append('<h2 style="color:blue;">'+ is_ill + "</h2>");
+            } else {
+              $('.right').append('<h2 style="color:green;">'+ is_ill + "</h2>");
+            }
+            
+            // $('.right').append('<h3>Probability not pneumonia: '+ not_ill, '<br><br>');
+            $('.right').append('<br><img src="' + urlImg +'">');
+        })
+        .fail(function() {
+            alert("error");
+        });
+    });
+</script>
+</div>
+
+</body>
+<body>
